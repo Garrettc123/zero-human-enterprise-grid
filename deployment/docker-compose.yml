@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  orchestrator:
+    build:
+      context: ../orchestrator
+      dockerfile: Dockerfile
+    environment:
+      - GITHUB_TOKEN=${GITHUB_TOKEN}
+      - STRIPE_API_KEY=${STRIPE_API_KEY}
+      - PAYPAL_CLIENT_ID=${PAYPAL_CLIENT_ID}
+    ports:
+      - "8000:8000"
+    volumes:
+      - ../orchestrator:/app
+    restart: unless-stopped
+
+  revenue-engine:
+    build:
+      context: ../revenue-engine
+      dockerfile: Dockerfile
+    environment:
+      - STRIPE_API_KEY=${STRIPE_API_KEY}
+      - PAYPAL_CLIENT_ID=${PAYPAL_CLIENT_ID}
+      - DATABASE_URL=postgresql://grid:grid@db:5432/enterprise_grid
+    ports:
+      - "8001:8000"
+    depends_on:
+      - db
+    restart: unless-stopped
+
+  db:
+    image: postgres:15
+    environment:
+      - POSTGRES_DB=enterprise_grid
+      - POSTGRES_USER=grid
+      - POSTGRES_PASSWORD=grid
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+volumes:
+  postgres_data:
