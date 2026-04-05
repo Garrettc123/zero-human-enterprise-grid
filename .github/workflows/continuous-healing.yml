@@ -2,7 +2,7 @@ name: Continuous Code Healing
 
 on:
   schedule:
-    - cron: '0 * * * *'  # Hourly
+    - cron: '0 9 * * *'  # Daily health check at 9 AM UTC
   workflow_dispatch:
 
 jobs:
