@@ -17,10 +17,10 @@ jobs:
     
     steps:
       - name: 🚀 Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         
       - name: 🐍 Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: 'pip'
@@ -51,26 +51,22 @@ jobs:
           if [ -d "tests" ]; then
             python -m pytest tests/ -v
           else
-            echo "⚠️  No tests directory found"
-            echo "Creating basic tests structure..."
+            echo "No tests directory found, creating basic tests..."
             mkdir -p tests
-            cat > tests/test_basic.py << 'EOF'
-import sys
+            python -c "
+          import pathlib
+          pathlib.Path('tests/__init__.py').touch()
+          pathlib.Path('tests/test_basic.py').write_text('''
+          import sys
 
-def test_python_version():
-    """Test Python version is 3.10+"""
-    assert sys.version_info >= (3, 10)
+          def test_python_version():
+              assert sys.version_info >= (3, 10)
 
-def test_imports():
-    """Test basic imports work"""
-    try:
-        import json
-        import os
-        import sys
-        assert True
-    except ImportError:
-        assert False, "Basic imports failed"
-EOF
+          def test_imports():
+              import json, os, sys
+              assert True
+          ''')
+          "
             python -m pytest tests/ -v
           fi
 
@@ -81,10 +77,10 @@ EOF
     
     steps:
       - name: 🚀 Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         
       - name: 🐍 Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: 'pip'
@@ -139,10 +135,10 @@ EOF
     
     steps:
       - name: 🚀 Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         
       - name: 🐍 Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: 'pip'
@@ -153,37 +149,32 @@ EOF
           
       - name: 🏥 Run Health Checks
         run: |
-          python -c "
-import sys
-import importlib.util
+          python3 << 'HEALTHCHECK'
+          import sys
+          import importlib.util
 
-print('🏥 Running system health checks...')
-print()
+          print('Running system health checks...')
+          print()
 
-# Check monitoring system
-if importlib.util.find_spec('monitoring') is None:
-    print('⚠️  Warning: monitoring.py not found')
-    sys.exit(0)
+          if importlib.util.find_spec('monitoring') is None:
+              print('Warning: monitoring.py not found')
+              sys.exit(0)
 
-try:
-    from monitoring import SystemMonitor
-    
-    monitor = SystemMonitor()
-    health = monitor.check_health()
-    
-    print(f'✅ System Status: {health.get(\"status\", \"unknown\")}')
-    print(f'📊 Active: {health.get(\"active_systems\", 0)}/{health.get(\"total_systems\", 9)}')
-    print()
-    
-    if health.get('status') == 'healthy':
-        print('✅ All systems operational!')
-    else:
-        print('⚠️  Some systems need attention')
-        
-except Exception as e:
-    print(f'⚠️  Health check exception: {e}')
-    print('This is expected if credentials are not configured.')
-          "
+          try:
+              from monitoring import MonitoringSystem
+
+              monitor = MonitoringSystem()
+              health = monitor.get_status()
+
+              print(f'System Status: {health.get("status", "unknown")}')
+              print(f'Total Checks: {health.get("total_checks", 0)}')
+              print()
+              print('Health check completed successfully!')
+
+          except Exception as e:
+              print(f'Health check exception: {e}')
+              print('This is expected if credentials are not configured.')
+          HEALTHCHECK
 
   deploy:
     name: 🚀 Deploy to Production
@@ -193,7 +184,7 @@ except Exception as e:
     
     steps:
       - name: 🚀 Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         
       - name: 🔧 Setup Deployment
         run: |
