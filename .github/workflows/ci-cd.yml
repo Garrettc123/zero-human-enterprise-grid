@@ -29,7 +29,8 @@ jobs:
         run: |
           pip install --upgrade pip
           pip install -r requirements.txt
-          
+          pip install pytest
+
       - name: 📦 Install Orchestrator Dependencies (if exists)
         run: |
           if [ -d "orchestrator" ] && [ -f "orchestrator/requirements.txt" ]; then
@@ -51,23 +52,8 @@ jobs:
           if [ -d "tests" ]; then
             python -m pytest tests/ -v
           else
-            echo "No tests directory found, creating basic tests..."
-            mkdir -p tests
-            python -c "
-          import pathlib
-          pathlib.Path('tests/__init__.py').touch()
-          pathlib.Path('tests/test_basic.py').write_text('''
-          import sys
-
-          def test_python_version():
-              assert sys.version_info >= (3, 10)
-
-          def test_imports():
-              import json, os, sys
-              assert True
-          ''')
-          "
-            python -m pytest tests/ -v
+            echo "::error::Tests missing; refusing to generate fake passing tests."
+            exit 1
           fi
 
   validate-sync-systems:
@@ -169,55 +155,22 @@ jobs:
               print(f'System Status: {health.get("status", "unknown")}')
               print(f'Total Checks: {health.get("total_checks", 0)}')
               print()
-              print('Health check completed successfully!')
+              print('Local monitoring check completed; production status not verified.')
 
           except Exception as e:
               print(f'Health check exception: {e}')
-              print('This is expected if credentials are not configured.')
+              print('Monitoring status unavailable; service health not proven.')
           HEALTHCHECK
 
   deploy:
-    name: 🚀 Deploy to Production
+    name: Deployment intentionally disabled (no provider configured)
     runs-on: ubuntu-latest
     needs: [test, validate-sync-systems, health-check]
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    
+    if: false
     steps:
-      - name: 🚀 Checkout
-        uses: actions/checkout@v5
-        
-      - name: 🔧 Setup Deployment
-        run: |
-          echo "🚀 Preparing deployment to production..."
-          echo "Commit: ${{ github.sha }}"
-          echo "Branch: ${{ github.ref_name }}"
-          echo "Actor: ${{ github.actor }}"
-          
-      - name: 📦 Package Application
-        run: |
-          echo "📦 Creating deployment package..."
-          tar -czf enterprise-grid-${{ github.sha }}.tar.gz \
-            *.py \
-            requirements.txt \
-            README.md \
-            SETUP_GUIDE.md \
-            .env.example
-          ls -lh enterprise-grid-${{ github.sha }}.tar.gz
-          
-      - name: 🐳 Deploy to Kubernetes (Placeholder)
-        run: |
-          echo "🐳 Deploying to Kubernetes cluster..."
-          echo "::notice::Deployment prepared for commit ${{ github.sha }}"
-          # Add actual deployment logic here:
-          # kubectl apply -f deployment/kubernetes/
-          # helm upgrade --install enterprise-grid ./charts/
-          
-      - name: ✅ Deployment Complete
-        run: |
-          echo ""
-          echo "✔️ Deployment to production completed!"
-          echo "🔗 Version: ${{ github.sha }}"
-          echo "📅 Deployed: $(date -u)"
+      - run: |
+          echo "Production deploy is disabled until a real provider and release approvals exist."
+          exit 1
 
   summary:
     name: 📊 Pipeline Summary
@@ -249,7 +202,7 @@ jobs:
           echo ""
           
           if [ "${{ needs.deploy.result }}" = "success" ]; then
-            echo "✅ Full pipeline completed successfully!"
+            echo "Checks completed; production deployment remains disabled."
           else
-            echo "📊 Pipeline completed with status checks"
+            echo "No verified production deployment occurred."
           fi
