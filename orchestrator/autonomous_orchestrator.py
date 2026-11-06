@@ -124,58 +124,32 @@ class AutonomousOrchestrator:
         self.total_arr = 0.0
 
     async def create_product_line(self, template_name: str) -> ProductLine:
-        """Create a complete product line from template.
-
-        Args:
-            template_name: Name of the product template
-
-        Returns:
-            ProductLine: Complete product ready for deployment
-        """
-        print(f"\n⚡ Creating product line: {template_name}")
-
-        # 1. Generate product from template
+        """Register a plan, not a deployed product or recognized revenue."""
         product = ProductFactory.create_product(template_name)
-        print(f"  ✓ Product generated: {product.name}")
-
-        # 2. Create GitHub repository
-        repo_info = await self.github_manager.create_repository(product)
-        print(f"  ✓ Repository created: {repo_info['html_url']}")
-
-        # 3. Generate and push code
-        await self.github_manager.push_code(product, "")
-        print(f"  ✓ Code pushed to GitHub")
-
-        # 4. Register with revenue engine
-        product.status = "deployed"
+        product.status = "planned"
         self.product_lines[product.name] = product
-        self.total_mrr += product.mrr_target
-        self.total_arr += product.arr_target
-        print(f"  ✓ Revenue stream activated: ${product.mrr_target:,.2f}/month")
-
         return product
 
     async def deploy_product_line(self, product_name: str) -> bool:
-        """Deploy product to production infrastructure."""
+        """Deployment is unavailable until a real provider integration exists."""
         if product_name not in self.product_lines:
             raise ValueError(f"Product not found: {product_name}")
-
-        print(f"\n🚀 Deploying: {product_name}")
-        print("  ✓ Kubernetes deployment created")
-        print("  ✓ Auto-scaling configured (3-20 pods)")
-        print("  ✓ Production ready")
-        return True
+        self.product_lines[product_name].status = "not_deployed"
+        return False
 
     def get_portfolio_summary(self) -> Dict:
         """Get complete portfolio overview."""
         return {
             "total_products": len(self.product_lines),
-            "total_mrr": self.total_mrr,
-            "annual_run_rate": self.total_arr,
+            "total_mrr": None,
+            "annual_run_rate": None,
+            "revenue_evidence": "not_connected",
             "products": [
                 {
                     "name": p.name,
-                    "mrr": p.mrr_target,
+                    "verified_mrr": None,
+                    "mrr_target": p.mrr_target,
+                    "arr_target": p.arr_target,
                     "status": p.status,
                     "repo": p.github_repo
                 }
