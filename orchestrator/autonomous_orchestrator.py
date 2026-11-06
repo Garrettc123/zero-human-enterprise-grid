@@ -159,33 +159,16 @@ class AutonomousOrchestrator:
 
 
 async def demo():
-    """Demonstration of the Zero-Human Enterprise Grid."""
-    print("="*60)
-    print("ZERO-HUMAN ENTERPRISE GRID")
-    print("World's First Self-Building AI Business Platform")
-    print("="*60)
-
-    # Initialize
-    token = os.getenv("GITHUB_TOKEN", "demo_token")
-    orchestrator = AutonomousOrchestrator(github_token=token)
-
-    # Create multiple product lines
-    templates = ["mesh-messenger", "governance-platform", "data-monetization-api", "trading-bot"]
-
-    for template in templates:
-        product = await orchestrator.create_product_line(template)
-        await orchestrator.deploy_product_line(product.name)
-
-    # Show portfolio
-    print("\n" + "="*60)
-    print("PORTFOLIO SUMMARY")
-    print("="*60)
+    """Print only template plans and truthful system capabilities."""
+    orchestrator = AutonomousOrchestrator(github_token="")
+    for template in ProductFactory.TEMPLATES:
+        await orchestrator.create_product_line(template)
     summary = orchestrator.get_portfolio_summary()
-    print(f"Total Products: {summary['total_products']}")
-    print(f"Total MRR: ${summary['total_mrr']:,.2f}")
-    print(f"Annual Run Rate: ${summary['annual_run_rate']:,.2f}")
-    print(f"\nPayment Hub: gwc2780@gmail.com")
-    print("="*60)
+    print("ZERO-HUMAN ENTERPRISE GRID — PLANNING MODE")
+    print(f"Planned product templates: {summary['total_products']}")
+    print("Verified MRR: unavailable (no verified billing integration)")
+    print("GitHub creation: not connected")
+    print("Production deployment: not connected")
 
 
 if __name__ == "__main__":
