@@ -106,21 +106,12 @@ class GitHubManager:
         }
 
     async def create_repository(self, product: ProductLine) -> Dict:
-        """Create a new GitHub repository for the product."""
-        # In production, this would use GitHub API
-        # For now, returns mock data
-        repo_name = product.github_repo.split("/")[1]
-        return {
-            "name": repo_name,
-            "full_name": product.github_repo,
-            "html_url": f"https://github.com/{product.github_repo}",
-            "created": True
-        }
+        """No fabricated repository creation response."""
+        raise RuntimeError("GitHub repository creation not integrated or approved")
 
     async def push_code(self, product: ProductLine, code: str) -> bool:
-        """Push generated code to repository."""
-        # In production, this would push actual code
-        return True
+        """No synthetic successful pushes."""
+        raise RuntimeError("GitHub code publishing not integrated or approved")
 
 
 class AutonomousOrchestrator:
